@@ -31,7 +31,6 @@ func (c *HTTPClient) Post(path string, request_body []byte, headers map[string]s
 	req, _ := http.NewRequest("POST", host + path, bytes.NewBuffer(request_body))
 	maps.Copy(newHeaders, headers)
 	maps.Copy(newHeaders, c.authHeader())
-	fmt.Println(newHeaders)
 	for key, value := range newHeaders {
 		req.Header.Set(key, value)
 	}
