@@ -1,17 +1,23 @@
-package ddm
+package request
 
 import (
 	"bytes"
 	"fmt"
 	"io"
-	"time"
+	"maps"
 	"net/http"
+	"time"
 )
+
+type HTTPClient struct {
+	BotToken string
+	UserId	 string
+}
 
 const host = "https://discordapp.com"
 
-func post(url string, request_body []byte, headers map[string]string, opts ...RequestOption) ([]byte, error) {
-	options := requestOptions{
+func (c *HTTPClient) Post(path string, request_body []byte, headers map[string]string, opts ...Option) ([]byte, error) {
+	options := options{
 		MaxRetry: 3,
 		RetryInterval: 500 * time.Millisecond,
 		Timeout:	10 * time.Second,
@@ -21,8 +27,12 @@ func post(url string, request_body []byte, headers map[string]string, opts ...Re
 	client := &http.Client{
 		Timeout: options.Timeout,
 	}
-	req, _ := http.NewRequest("POST", url, bytes.NewBuffer(request_body))
-	for key, value := range headers {
+	newHeaders := map[string]string{}
+	req, _ := http.NewRequest("POST", host + path, bytes.NewBuffer(request_body))
+	maps.Copy(newHeaders, headers)
+	maps.Copy(newHeaders, c.authHeader())
+	fmt.Println(newHeaders)
+	for key, value := range newHeaders {
 		req.Header.Set(key, value)
 	}
 
@@ -49,13 +59,13 @@ func post(url string, request_body []byte, headers map[string]string, opts ...Re
 	return byteArray, nil
 }
 
-func postJson(url string, request_body []byte, headers map[string]string, opts ...RequestOption) ([]byte, error) {
+func (c *HTTPClient) PostJson(url string, request_body []byte, headers map[string]string, opts ...Option) ([]byte, error) {
 	headers["Content-Type"] = "application/json"
-	return post(url, request_body, headers, opts...)
+	return c.Post(url, request_body, headers, opts...)
 }
 
-func defaultHeader(botToken string) map[string]string {
+func (c *HTTPClient) authHeader() map[string]string {
 	return map[string]string{
-		"authorization": "Bot " + botToken,
+		"authorization": "Bot " + c.BotToken,
 	}
 }

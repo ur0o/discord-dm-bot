@@ -4,39 +4,35 @@ import (
 	"encoding/json"
 
 	"github.com/tidwall/gjson"
+
+	"github.com/ur0o/discord-dm-bot/request"
+	"github.com/ur0o/discord-dm-bot/message"
 )
 
 type Client struct {
-	BotToken string
-	UserId	 string
-	DmId		 string
+	Message *message.MessageService
 }
 
-func NewClient(bt, ui string) (*Client, error) {
-	path := "/api/users/@me/channels"
-
-	data := map[string]string{
-		"recipient_id": ui,
-	}
-	d, _ := json.Marshal(data)
-	res, err := postJson(host + path, d, defaultHeader(bt))
+func New(bt, ui string) (*Client, error) {
+	cli := request.HTTPClient{BotToken: bt, UserId: ui}
+	dmId, err := fetchDmId(cli)
 	if err != nil {
 		return nil, err
 	}
-	dmId := gjson.Get(string(res), "id").Str
-	return &Client{BotToken: bt, UserId: ui, DmId: dmId}, nil
+	m := message.NewMessageService(&cli, dmId)
+	return &Client{Message: m}, nil
 }
 
-func (c *Client)SendMessage(m string, options ...RequestOption) error {
-	path := "/api/channels/" + c.DmId + "/messages"
+func fetchDmId(cli request.HTTPClient) (string, error) {
+	path := "/api/users/@me/channels"
+
 	data := map[string]string{
-		"content": m,
+		"recipient_id": cli.UserId,
 	}
-	buf, _ := json.Marshal(&data)
-	_, err := postJson(host + path, buf, c.defaultHeader(), options...)
-	return err
-}
-
-func (c *Client)defaultHeader() map[string]string {
-	return defaultHeader(c.BotToken)
+	d, _ := json.Marshal(data)
+	res, err := cli.PostJson(path, d, map[string]string{})
+	if err != nil {
+		return "", err
+	}
+	return gjson.Get(string(res), "id").Str, nil
 }
