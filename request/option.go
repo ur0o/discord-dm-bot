@@ -5,14 +5,14 @@ import (
 )
 
 type options struct {
-	MaxRetry 			int
+	MaxRetry 			uint
 	RetryInterval time.Duration
 	Timeout 			time.Duration
 }
 
 type Option func(o *options)
 
-func MaxRetry(maxRetry int) Option {
+func MaxRetry(maxRetry uint) Option {
 	return func(opt *options) {
 		opt.MaxRetry = maxRetry
 	}
