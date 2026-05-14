@@ -2,6 +2,7 @@ package ddm
 
 import (
 	"encoding/json"
+	"time"
 
 	"github.com/tidwall/gjson"
 
@@ -35,4 +36,16 @@ func fetchDmId(cli request.HTTPClient) (string, error) {
 		return "", err
 	}
 	return gjson.Get(string(res), "id").Str, nil
+}
+
+func MaxRetry(maxRetry uint) request.Option {
+	return request.MaxRetry(maxRetry)
+}
+
+func RetryInterval(retryInterval time.Duration) request.Option {
+	return request.RetryInterval(retryInterval)
+}
+
+func Timeout(timeout time.Duration) request.Option {
+	return request.Timeout(timeout)
 }
