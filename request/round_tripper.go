@@ -14,6 +14,7 @@ type myRoundTripper struct {
 func (r *myRoundTripper) RoundTrip(req *http.Request) (res *http.Response, err error) {
 	for range(r.maxRetry + 1) {
 		res, err = r.t.RoundTrip(req)
+		if res == nil || err != nil { continue }
 		if _, ok := retryableStatus[res.StatusCode]; !ok {
 			return
 		}

@@ -44,6 +44,7 @@ func (c *HTTPClient) Post(path string, request_body []byte, headers map[string]s
 	var err error
 	res, err = client.Do(req)
 	if err != nil { return nil, err }
+	defer res.Body.Close()
 
 	var byteArray []byte
 	byteArray, err = io.ReadAll(res.Body)
